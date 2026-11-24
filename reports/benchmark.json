@@ -1,0 +1,432 @@
+{
+  "generated_at": "2026-11-24 15:26:58",
+  "ffmpeg": "ffmpeg-linux-aarch64-v9.0.2",
+  "settings": [
+    {
+      "id": "off",
+      "label": "关闭平滑",
+      "smoothness": 0,
+      "min_fov": 0.85
+    },
+    {
+      "id": "mid",
+      "label": "标准 55",
+      "smoothness": 55,
+      "min_fov": 0.85
+    },
+    {
+      "id": "max",
+      "label": "最强 100",
+      "smoothness": 100,
+      "min_fov": 0.8
+    },
+    {
+      "id": "tightfov",
+      "label": "高视野下限 95%",
+      "smoothness": 80,
+      "min_fov": 0.95
+    }
+  ],
+  "clips": {
+    "planar": {
+      "title": "已知抖动平面序列（真值轨迹）",
+      "description": "单平面高纹理海报，相机路径完全已知，用于轨迹/重投影精度评测。",
+      "meta": {
+        "width": 640,
+        "height": 360,
+        "fps": 30.0,
+        "n_frames": 180,
+        "model": "similarity",
+        "n_pairs": 179,
+        "pairs_ok": 179,
+        "pairs_imputed": 0,
+        "mean_inlier_rmse_px": 0.15102629630567563,
+        "max_inlier_rmse_px": 0.23545743317377524,
+        "mean_model_residual_px": 0.16333221258022734,
+        "max_model_residual_px": 1.6524319509179948,
+        "mean_inlier_ratio": 0.9999227196005602,
+        "diagonal_px": 734.3023900274328
+      },
+      "gt_rmse": {
+        "frames": 180,
+        "tx_rmse_px": 0.5799,
+        "ty_rmse_px": 0.3671,
+        "translation_rmse_px": 0.6863,
+        "angle_rmse_deg": 0.0081,
+        "scale_rmse_pct": 0.2087,
+        "tx_max_abs_px": 0.9979
+      },
+      "parallax": {
+        "level": "low",
+        "score": 0.01,
+        "mean_model_residual_px": 0.16,
+        "p95_model_residual_px": 0.22,
+        "mean_p90_residual_px": 0.17,
+        "mean_bad_fraction": 0.0,
+        "mean_spatial_std_px": 0.03,
+        "mean_inlier_ratio": 1.0,
+        "supported_model": "相似变换（平移/旋转/统一缩放，近似平面运动）",
+        "message": "模型残差较低，画面接近平面/近似相机运动假设。"
+      },
+      "settings": {
+        "off": {
+          "elapsed_s": 1.6,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.9917,
+            "min_retained_fov": 0.9917,
+            "mean_retained_area": 0.9834,
+            "worst_retained_area": 0.9834,
+            "mean_zoom": 1.0084,
+            "max_zoom": 1.0084,
+            "declared_max_zoom": 1.1765,
+            "sacrificed_frames": 0,
+            "sacrificed_fraction": 0.0,
+            "mean_correction_strength": 1.0
+          },
+          "orig_hf_index_px": 11.836,
+          "target_hf_index_px": 11.8361,
+          "output_hf_index_px": 11.92,
+          "hf_reduction_pct": -0.7,
+          "output_angle_d2_deg": 0.9502,
+          "output_inlier_rmse_px": 0.177
+        },
+        "mid": {
+          "elapsed_s": 1.5,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.8661,
+            "min_retained_fov": 0.8601,
+            "mean_retained_area": 0.7502,
+            "worst_retained_area": 0.7397,
+            "mean_zoom": 1.1546,
+            "max_zoom": 1.1627,
+            "declared_max_zoom": 1.1765,
+            "sacrificed_frames": 0,
+            "sacrificed_fraction": 0.0,
+            "mean_correction_strength": 1.0
+          },
+          "orig_hf_index_px": 11.836,
+          "target_hf_index_px": 0.0151,
+          "output_hf_index_px": 0.029,
+          "hf_reduction_pct": 99.8,
+          "output_angle_d2_deg": 0.0038,
+          "output_inlier_rmse_px": 0.092
+        },
+        "max": {
+          "elapsed_s": 1.9,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.8593,
+            "min_retained_fov": 0.8478,
+            "mean_retained_area": 0.7384,
+            "worst_retained_area": 0.7187,
+            "mean_zoom": 1.1639,
+            "max_zoom": 1.1796,
+            "declared_max_zoom": 1.25,
+            "sacrificed_frames": 0,
+            "sacrificed_fraction": 0.0,
+            "mean_correction_strength": 1.0
+          },
+          "orig_hf_index_px": 11.836,
+          "target_hf_index_px": 0.0086,
+          "output_hf_index_px": 0.028,
+          "hf_reduction_pct": 99.8,
+          "output_angle_d2_deg": 0.0032,
+          "output_inlier_rmse_px": 0.091
+        },
+        "tightfov": {
+          "elapsed_s": 4.6,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.95,
+            "min_retained_fov": 0.95,
+            "mean_retained_area": 0.9025,
+            "worst_retained_area": 0.9025,
+            "mean_zoom": 1.0526,
+            "max_zoom": 1.0526,
+            "declared_max_zoom": 1.0526,
+            "sacrificed_frames": 132,
+            "sacrificed_fraction": 0.7333,
+            "mean_correction_strength": 0.6445
+          },
+          "orig_hf_index_px": 11.836,
+          "target_hf_index_px": 0.0103,
+          "output_hf_index_px": 5.317,
+          "hf_reduction_pct": 55.1,
+          "output_angle_d2_deg": 0.5013,
+          "output_inlier_rmse_px": 0.146
+        }
+      },
+      "moving_object": null
+    },
+    "handheld_scene": {
+      "title": "自制手持街景短片（含运动车辆）",
+      "description": "程序化拍摄的街景短片：车辆与行人独立运动，用于验证时间顺序与真实运动保留。",
+      "meta": {
+        "width": 640,
+        "height": 360,
+        "fps": 30.0,
+        "n_frames": 180,
+        "model": "similarity",
+        "n_pairs": 179,
+        "pairs_ok": 179,
+        "pairs_imputed": 0,
+        "mean_inlier_rmse_px": 0.1581860081253526,
+        "max_inlier_rmse_px": 0.28058950874746474,
+        "mean_model_residual_px": 0.7496867765571327,
+        "max_model_residual_px": 1.6829413479182718,
+        "mean_inlier_ratio": 0.9848462340097719,
+        "diagonal_px": 734.3023900274328
+      },
+      "gt_rmse": {
+        "frames": 180,
+        "tx_rmse_px": 0.2769,
+        "ty_rmse_px": 0.146,
+        "translation_rmse_px": 0.3131,
+        "angle_rmse_deg": 0.0167,
+        "scale_rmse_pct": 0.0917,
+        "tx_max_abs_px": 0.4491
+      },
+      "parallax": {
+        "level": "low",
+        "score": 0.148,
+        "mean_model_residual_px": 0.75,
+        "p95_model_residual_px": 1.57,
+        "mean_p90_residual_px": 0.2,
+        "mean_bad_fraction": 0.015,
+        "mean_spatial_std_px": 0.78,
+        "mean_inlier_ratio": 0.985,
+        "supported_model": "相似变换（平移/旋转/统一缩放，近似平面运动）",
+        "message": "模型残差较低，画面接近平面/近似相机运动假设。"
+      },
+      "settings": {
+        "off": {
+          "elapsed_s": 1.7,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.9917,
+            "min_retained_fov": 0.9917,
+            "mean_retained_area": 0.9834,
+            "worst_retained_area": 0.9834,
+            "mean_zoom": 1.0084,
+            "max_zoom": 1.0084,
+            "declared_max_zoom": 1.1765,
+            "sacrificed_frames": 0,
+            "sacrificed_fraction": 0.0,
+            "mean_correction_strength": 1.0
+          },
+          "orig_hf_index_px": 11.809,
+          "target_hf_index_px": 11.8089,
+          "output_hf_index_px": 11.892,
+          "hf_reduction_pct": -0.7,
+          "output_angle_d2_deg": 0.9489,
+          "output_inlier_rmse_px": 0.198
+        },
+        "mid": {
+          "elapsed_s": 1.9,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.8658,
+            "min_retained_fov": 0.8549,
+            "mean_retained_area": 0.7497,
+            "worst_retained_area": 0.7309,
+            "mean_zoom": 1.1551,
+            "max_zoom": 1.1697,
+            "declared_max_zoom": 1.1765,
+            "sacrificed_frames": 0,
+            "sacrificed_fraction": 0.0,
+            "mean_correction_strength": 1.0
+          },
+          "orig_hf_index_px": 11.809,
+          "target_hf_index_px": 0.0137,
+          "output_hf_index_px": 0.033,
+          "hf_reduction_pct": 99.7,
+          "output_angle_d2_deg": 0.0042,
+          "output_inlier_rmse_px": 0.113
+        },
+        "max": {
+          "elapsed_s": 2.5,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.8557,
+            "min_retained_fov": 0.8406,
+            "mean_retained_area": 0.7323,
+            "worst_retained_area": 0.7067,
+            "mean_zoom": 1.1688,
+            "max_zoom": 1.1896,
+            "declared_max_zoom": 1.25,
+            "sacrificed_frames": 0,
+            "sacrificed_fraction": 0.0,
+            "mean_correction_strength": 1.0
+          },
+          "orig_hf_index_px": 11.809,
+          "target_hf_index_px": 0.0087,
+          "output_hf_index_px": 0.031,
+          "hf_reduction_pct": 99.7,
+          "output_angle_d2_deg": 0.0037,
+          "output_inlier_rmse_px": 0.114
+        },
+        "tightfov": {
+          "elapsed_s": 5.0,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.95,
+            "min_retained_fov": 0.95,
+            "mean_retained_area": 0.9025,
+            "worst_retained_area": 0.9025,
+            "mean_zoom": 1.0526,
+            "max_zoom": 1.0526,
+            "declared_max_zoom": 1.0526,
+            "sacrificed_frames": 135,
+            "sacrificed_fraction": 0.75,
+            "mean_correction_strength": 0.6417
+          },
+          "orig_hf_index_px": 11.809,
+          "target_hf_index_px": 0.0103,
+          "output_hf_index_px": 5.274,
+          "hf_reduction_pct": 55.3,
+          "output_angle_d2_deg": 0.5071,
+          "output_inlier_rmse_px": 0.152
+        }
+      },
+      "moving_object": {
+        "detected_frames": 54,
+        "slope_px_per_frame": 9.27,
+        "trend_corr": 0.999
+      }
+    },
+    "parallax_layers": {
+      "title": "视差分层序列（深度冲突）",
+      "description": "近景层抖动位移大于背景，单一变换必然残留，用于残差/视差告警验证。",
+      "meta": {
+        "width": 640,
+        "height": 360,
+        "fps": 30.0,
+        "n_frames": 180,
+        "model": "similarity",
+        "n_pairs": 179,
+        "pairs_ok": 179,
+        "pairs_imputed": 0,
+        "mean_inlier_rmse_px": 0.3742394663633732,
+        "max_inlier_rmse_px": 1.4117298838086219,
+        "mean_model_residual_px": 8.827201817623008,
+        "max_model_residual_px": 16.633094788109602,
+        "mean_inlier_ratio": 0.664414627741648,
+        "diagonal_px": 734.3023900274328
+      },
+      "gt_rmse": {
+        "frames": 180,
+        "tx_rmse_px": 13.0963,
+        "ty_rmse_px": 35.0328,
+        "translation_rmse_px": 37.4007,
+        "angle_rmse_deg": 1.1078,
+        "scale_rmse_pct": 1.1285,
+        "tx_max_abs_px": 23.6124
+      },
+      "parallax": {
+        "level": "high",
+        "score": 1.0,
+        "mean_model_residual_px": 8.83,
+        "p95_model_residual_px": 14.16,
+        "mean_p90_residual_px": 16.92,
+        "mean_bad_fraction": 0.331,
+        "mean_spatial_std_px": 5.31,
+        "mean_inlier_ratio": 0.664,
+        "supported_model": "相似变换（平移/旋转/统一缩放，近似平面运动）",
+        "message": "残差偏高且呈空间分布：存在明显视差或独立运动，单一 2D 变换无法解释所有深度，稳定结果以主平面为准，近景/前景可能残留运动。"
+      },
+      "settings": {
+        "off": {
+          "elapsed_s": 2.6,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.9917,
+            "min_retained_fov": 0.9917,
+            "mean_retained_area": 0.9834,
+            "worst_retained_area": 0.9834,
+            "mean_zoom": 1.0084,
+            "max_zoom": 1.0084,
+            "declared_max_zoom": 1.1765,
+            "sacrificed_frames": 0,
+            "sacrificed_fraction": 0.0,
+            "mean_correction_strength": 1.0
+          },
+          "orig_hf_index_px": 12.143,
+          "target_hf_index_px": 12.1434,
+          "output_hf_index_px": 12.173,
+          "hf_reduction_pct": -0.2,
+          "output_angle_d2_deg": 0.9609,
+          "output_inlier_rmse_px": 0.379
+        },
+        "mid": {
+          "elapsed_s": 2.4,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.8613,
+            "min_retained_fov": 0.8547,
+            "mean_retained_area": 0.742,
+            "worst_retained_area": 0.7305,
+            "mean_zoom": 1.1611,
+            "max_zoom": 1.17,
+            "declared_max_zoom": 1.1765,
+            "sacrificed_frames": 0,
+            "sacrificed_fraction": 0.0,
+            "mean_correction_strength": 1.0
+          },
+          "orig_hf_index_px": 12.143,
+          "target_hf_index_px": 0.0188,
+          "output_hf_index_px": 1.654,
+          "hf_reduction_pct": 86.4,
+          "output_angle_d2_deg": 0.109,
+          "output_inlier_rmse_px": 0.243
+        },
+        "max": {
+          "elapsed_s": 2.0,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.8573,
+            "min_retained_fov": 0.8493,
+            "mean_retained_area": 0.735,
+            "worst_retained_area": 0.7213,
+            "mean_zoom": 1.1665,
+            "max_zoom": 1.1775,
+            "declared_max_zoom": 1.25,
+            "sacrificed_frames": 0,
+            "sacrificed_fraction": 0.0,
+            "mean_correction_strength": 1.0
+          },
+          "orig_hf_index_px": 12.143,
+          "target_hf_index_px": 0.0086,
+          "output_hf_index_px": 1.655,
+          "hf_reduction_pct": 86.4,
+          "output_angle_d2_deg": 0.1071,
+          "output_inlier_rmse_px": 0.238
+        },
+        "tightfov": {
+          "elapsed_s": 5.5,
+          "coverage_violations": 0,
+          "fov": {
+            "mean_retained_fov": 0.95,
+            "min_retained_fov": 0.95,
+            "mean_retained_area": 0.9025,
+            "worst_retained_area": 0.9025,
+            "mean_zoom": 1.0526,
+            "max_zoom": 1.0526,
+            "declared_max_zoom": 1.0526,
+            "sacrificed_frames": 140,
+            "sacrificed_fraction": 0.7778,
+            "mean_correction_strength": 0.6208
+          },
+          "orig_hf_index_px": 12.143,
+          "target_hf_index_px": 0.0111,
+          "output_hf_index_px": 5.68,
+          "hf_reduction_pct": 53.2,
+          "output_angle_d2_deg": 0.542,
+          "output_inlier_rmse_px": 0.333
+        }
+      },
+      "moving_object": null
+    }
+  }
+}

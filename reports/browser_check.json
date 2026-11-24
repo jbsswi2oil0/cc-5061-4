@@ -1,0 +1,62 @@
+{
+  "console_errors": [],
+  "page_errors": [],
+  "checks": {
+    "sample_chips": 3,
+    "hf_orig": "11.84",
+    "hf_out": "0.029",
+    "hf_sub": "端到端实测削减 99.8%（对输出视频重新分析）",
+    "fov": "86.6%",
+    "sac": "0",
+    "rmse": "0.15 px",
+    "stage": "完成 · 可播放 / 微调参数 — 完成",
+    "src_video": {
+      "readyState": 4,
+      "vw": 640,
+      "vh": 360,
+      "src": true,
+      "duration": 6
+    },
+    "stab_video": {
+      "readyState": 4,
+      "vw": 640,
+      "vh": 360,
+      "src": true,
+      "duration": 6
+    },
+    "chart_pixels": {
+      "traj": {
+        "w": 604,
+        "h": 210,
+        "painted": 12231
+      },
+      "fov": {
+        "w": 604,
+        "h": 150,
+        "painted": 8550
+      },
+      "resid": {
+        "w": 604,
+        "h": 150,
+        "painted": 8371
+      },
+      "overlay": {
+        "w": 640,
+        "h": 360,
+        "painted": 67146
+      }
+    },
+    "playback": {
+      "srcT": 1.834,
+      "stabT": 1.8357,
+      "srcPaused": false,
+      "stabPaused": false
+    },
+    "seek_time": "3.00s / 6.00s · 帧 90/179",
+    "parallax_banner": "视差/模型残差明显 残差偏高且呈空间分布：存在明显视差或独立运动，单一 2D 变换无法解释所有深度，稳定结果以主平面为准，近景/前景可能残留运动。\n支持模型：相似变换（平移/旋转/统一缩放，近似平面运动） · 平均坏点比例 33.1% · 空间残差标准差 5.31px · 平均全残差 8.83px",
+    "parallax_class": "parallax high",
+    "tightfov_fov": "95.0%",
+    "tightfov_sac": "139",
+    "bench_rows": 12
+  }
+}

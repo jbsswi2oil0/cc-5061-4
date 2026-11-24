@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>视频稳定 · 运动分析播放器</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">◉</span>
+    <div>
+      <h1>手持视频稳定器 · 运动分析播放器</h1>
+      <p class="sub">可验证特征匹配 → 相机路径累积/平滑 → 视野裁决裁切 → 重采样输出</p>
+    </div>
+  </div>
+  <details class="help">
+    <summary>启动说明 / 支持范围</summary>
+    <div class="help-body">
+      <p><b>启动界面：</b>在 <code>/workspace</code> 目录执行
+        <code>python3 app.py</code>，浏览器打开
+        <code>http://127.0.0.1:8000</code>（可用 <code>PORT=8123 python3 app.py</code> 改端口）。</p>
+      <p><b>支持的运动模型：</b>初版仅支持<b>相似变换</b>（平移 / 旋转 / 统一缩放，近似平面相机运动）与可选<b>仿射变换</b>（平面运动）。
+        视差明显时会给出逐帧模型残差与告警——单一 2D 变换不能解释所有深度。</p>
+      <p><b>视野取舍：</b>黄色多边形是原片里实际被采样的有效区域。最低视野保留下限限定最大放大；
+        当理想平滑需要的裁切超过该上限时，内核会在局部回退校正强度（“牺牲稳定度”），而不是偷偷放大或留下黑边。</p>
+      <p>平滑是对累计相机路径做低通，保留有意的缓慢运镜与真实运动的时间顺序，不是冻结画面。</p>
+    </div>
+  </details>
+</header>
+
+<section class="toolbar card">
+  <div class="tb-group">
+    <label class="tb-label">内置样片</label>
+    <div id="sampleCards" class="sample-cards"></div>
+  </div>
+  <div class="tb-group">
+    <label class="tb-label" for="fileInput">上传自己的短片</label>
+    <div class="upload-row">
+      <input type="file" id="fileInput" accept="video/*,.mov,.mkv,.avi,.webm" />
+      <button id="uploadBtn" class="btn">上传并稳定</button>
+    </div>
+  </div>
+  <div class="tb-group tb-controls">
+    <div class="ctrl">
+      <label for="modelSel">运动模型</label>
+      <select id="modelSel">
+        <option value="similarity" selected>相似变换（推荐 · 近似平面）</option>
+        <option value="affine">仿射变换（平面 / 剪切）</option>
+      </select>
+    </div>
+    <div class="ctrl slider-ctrl">
+      <label for="smoothRange">平滑强度 <b id="smoothVal">55</b></label>
+      <input type="range" id="smoothRange" min="0" max="100" value="55" />
+      <span class="hint">0 = 关闭，100 = 最强低通（不冻结运镜）</span>
+    </div>
+    <div class="ctrl slider-ctrl">
+      <label for="fovRange">最低视野保留 <b id="fovVal">85%</b></label>
+      <input type="range" id="fovRange" min="70" max="98" value="85" />
+      <span class="hint" id="zoomCapHint">最大放大 ≈ 1.18×</span>
+    </div>
+    <div class="ctrl buttons">
+      <button id="renderBtn" class="btn primary">应用并渲染视频</button>
+      <label class="auto"><input type="checkbox" id="autoRender" checked /> 停顿后自动渲染</label>
+      <a id="downloadBtn" class="btn ghost disabled" download="stabilized.mp4">下载完整视频</a>
+    </div>
+  </div>
+</section>
+
+<section id="jobBanner" class="job-banner hidden">
+  <div class="job-row">
+    <span id="stageText">准备中…</span>
+    <div class="progress"><div id="progressBar" class="bar" style="width:0%"></div></div>
+    <span id="progressPct" class="pct">0%</span>
+  </div>
+  <div id="errorBox" class="error-box hidden"></div>
+</section>
+
+<main class="layout">
+  <section class="left-col">
+    <div class="player-grid">
+      <figure class="player-card">
+        <figcaption>原片 · <span class="accent-yellow">黄色区域 = 有效裁切边界</span></figcaption>
+        <div class="video-wrap" id="srcWrap">
+          <video id="srcVideo" muted playsinline preload="auto"></video>
+          <canvas id="overlay"></canvas>
+          <div id="srcEmpty" class="video-empty">选择样片或上传视频后开始</div>
+        </div>
+      </figure>
+      <figure class="player-card">
+        <figcaption>稳定输出 · 由内核渲染的完整重采样视频</figcaption>
+        <div class="video-wrap" id="stabWrap">
+          <video id="stabVideo" playsinline controls preload="auto"></video>
+          <div id="stabEmpty" class="video-empty">稳定视频将在这里播放</div>
+          <div id="renderingPill" class="rendering-pill hidden">渲染中…</div>
+        </div>
+      </figure>
+    </div>
+
+    <div class="transport card">
+      <button id="playBtn" class="btn primary" disabled>播放 / 暂停（双画面同步）</button>
+      <input type="range" id="seekBar" min="0" max="1000" value="0" step="1" disabled />
+      <span id="timeLabel" class="time">0.00s / 0.00s · 帧 0</span>
+    </div>
+
+    <div id="warningArea" class="warnings"></div>
+
+    <div class="card legend-card">
+      <h3>怎么读这个播放器</h3>
+      <ul class="legend">
+        <li>左图黄色多边形：当前参数下原帧中被采样进输出的区域（<b>有效区域 / 裁切边界</b>），随平滑强度与视野下限逐帧变化。</li>
+        <li>拖动平滑强度：轨迹图与黄框由内核规划接口即时重算；停顿后自动重新渲染右侧完整视频。</li>
+        <li>红点 / 红区：受最低视野上限所限，该帧局部回退了校正（牺牲稳定度）以杜绝黑边。</li>
+        <li>点击任一图表可把双画面跳转到对应帧；播放时竖线为当前帧。</li>
+      </ul>
+    </div>
+  </section>
+
+  <aside class="right-col">
+    <div id="parallaxBanner" class="parallax hidden"></div>
+
+    <div class="metrics-grid">
+      <div class="metric card">
+        <div class="m-label">轨迹高频指数（像素当量）</div>
+        <div class="m-value"><span id="mHfOrig">–</span> → <span id="mHfOut">–</span></div>
+        <div class="m-sub" id="mHfSub">等待分析</div>
+      </div>
+      <div class="metric card">
+        <div class="m-label">保留视野（线性）</div>
+        <div class="m-value" id="mFov">–</div>
+        <div class="m-sub" id="mFovSub">平均 / 最低</div>
+      </div>
+      <div class="metric card">
+        <div class="m-label">局部牺牲稳定的帧</div>
+        <div class="m-value" id="mSac">–</div>
+        <div class="m-sub" id="mSacSub">0 / 0 帧</div>
+      </div>
+      <div class="metric card">
+        <div class="m-label">重投影 RMSE（内点）</div>
+        <div class="m-value" id="mRmse">–</div>
+        <div class="m-sub" id="mInlier">内点率 –</div>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="chart-head">
+        <h3>相机路径：原始 vs 平滑目标</h3>
+        <div class="seg" id="trajSeg">
+          <button data-ch="x" class="active">X 平移</button>
+          <button data-ch="y">Y 平移</button>
+          <button data-ch="a">旋转°</button>
+          <button data-ch="s">缩放</button>
+        </div>
+      </div>
+      <canvas id="chartTraj" class="chart"></canvas>
+      <div id="trajReadout" class="readout"></div>
+    </div>
+
+    <div class="card chart-card">
+      <h3>有效视野 / 裁切与裁决</h3>
+      <canvas id="chartFov" class="chart small"></canvas>
+      <div class="readout">绿线：逐帧保留视野；红虚线：设定下限；红点：牺牲稳定帧；紫线：实际校正强度 α。</div>
+    </div>
+
+    <div class="card chart-card">
+      <h3>模型残差（视差 / 独立运动证据）</h3>
+      <canvas id="chartResid" class="chart small"></canvas>
+      <div class="readout">橙：全部匹配 RMS 残差；绿：RANSAC 内点 RMSE；红：超限匹配比例（右轴）。</div>
+    </div>
+
+    <div class="card benchmark-card">
+      <div class="chart-head">
+        <h3>合成真值 / 自制短片对比评测</h3>
+        <div>
+          <button id="runBenchBtn" class="btn tiny">重新运行评测</button>
+        </div>
+      </div>
+      <div id="benchStatus" class="hint"></div>
+      <div class="table-wrap">
+        <table id="benchTable">
+          <thead>
+            <tr>
+              <th>样片</th><th>设置</th><th>高频 原→输出</th><th>削减</th>
+              <th>FOV 最低</th><th>牺牲帧</th><th>越界</th><th>真值轨迹 RMSE</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="benchExtra" class="readout"></div>
+    </div>
+  </aside>
+</main>
+
+<footer class="footer">
+  <span>稳定内核：LK 正反校验特征 · RANSAC 相似/仿射 · 高斯低通路径 · 滚动最大视野包络 · ffmpeg H.264 输出</span>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

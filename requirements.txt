@@ -1,0 +1,11 @@
+# Video stabilization kernel + web player runtime dependencies.
+# Python 3.11, linux x86_64/aarch64 / macOS / Windows.
+# Install:  python3 -m pip install -r requirements.txt
+numpy>=1.26
+opencv-python-headless>=4.9
+Flask>=3.0
+imageio-ffmpeg>=0.4.9
+
+# Optional, only to reproduce the real-browser UI check in dl/uitest/shot.py:
+#   python3 -m pip install playwright && python3 -m playwright install chromium
+# Optional, only to run the DOM-level harness in dl/uitest/ (needs Node + jsdom).
