@@ -207,3 +207,21 @@ td .clip-desc { display: block; color: var(--muted); font-size: 10.5px; }
   .player-grid { grid-template-columns: 1fr; }
   .tb-controls { margin-left: 0; }
 }
+
+/* ---- adversarial acceptance card ---- */
+.accept-verdict { margin: 8px 0; padding: 8px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; }
+.accept-verdict.pass { background: #173d25; color: #a7e8bd; }
+.accept-verdict.fail { background: #5a1d1d; color: #ffb4ab; }
+.pill.good { background: #173d25; color: #a7e8bd; }
+.pill.badtext { background: #5a1d1d; color: #ffb4ab; }
+.pill.meh { background: #4a3d12; color: #efe0a0; }
+.sample-chip.testfield { border-color: #7c5cd6; }
+.tf-tag { font-size: 10px; background: #7c5cd6; color: #fff; border-radius: 4px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
+.accept-failures { margin-top: 8px; }
+.fail-art { border: 1px solid var(--line); border-radius: 8px; margin: 6px 0; padding: 6px 10px; }
+.fail-art summary { cursor: pointer; font-size: 12.5px; color: #ffb4ab; }
+.fail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.fail-grid figure { margin: 0; }
+.fail-grid img { width: 100%; border-radius: 6px; border: 1px solid var(--line); }
+.fail-grid figcaption { font-size: 11px; color: var(--muted); text-align: center; }
+.fail-grid pre { grid-column: 1 / -1; font-size: 11px; background: #0d1117; padding: 8px; border-radius: 6px; overflow-x: auto; margin: 0; }

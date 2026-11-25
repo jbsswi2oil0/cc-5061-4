@@ -190,6 +190,30 @@
       </div>
       <div id="benchExtra" class="readout"></div>
     </div>
+
+    <div class="card benchmark-card acceptance-card">
+      <div class="chart-head">
+        <h3>对抗性轨迹验收 · 真值视场测试场</h3>
+        <div>
+          <button id="runAcceptBtn" class="btn tiny">运行对抗验收</button>
+        </div>
+      </div>
+      <div class="hint">测试场样片（边缘标记环 · 抖动/摇移）已并入上方样片列表；验收器搜索最短露边摇移、反推裁切窗口，并把空像素风险与有效视野损失分开判定。</div>
+      <div id="acceptStatus" class="hint"></div>
+      <div id="acceptVerdict" class="accept-verdict hidden"></div>
+      <div class="table-wrap">
+        <table id="acceptTable">
+          <thead>
+            <tr>
+              <th>验收案例</th><th>空像素风险</th><th>视野损失</th><th>判定</th><th>失败还原</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="acceptExtra" class="readout"></div>
+      <div id="acceptFailures" class="accept-failures"></div>
+    </div>
   </aside>
 </main>
 

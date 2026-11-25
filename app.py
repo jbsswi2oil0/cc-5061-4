@@ -41,11 +41,18 @@ from stabilizer.pipeline import (  # noqa: E402
     plan_metrics,
     render_plan,
 )
+from stabilizer.acceptance import run_acceptance  # noqa: E402
 from stabilizer.synth import SAMPLE_INFO, SAMPLE_DIR, render_sample  # noqa: E402
+from stabilizer.testfield import TESTFIELD_INFO, render_testfield  # noqa: E402
 from stabilizer.tracking import analyze_video  # noqa: E402
 
 RUNS_DIR = os.path.join(ROOT, "runs", "jobs")
 os.makedirs(RUNS_DIR, exist_ok=True)
+
+ACCEPT_DIR = os.path.join(ROOT, "reports", "testfield")
+os.makedirs(ACCEPT_DIR, exist_ok=True)
+
+ALL_SAMPLE_INFO = {**SAMPLE_INFO, **TESTFIELD_INFO}
 
 app = Flask(
     __name__,
@@ -57,6 +64,7 @@ app.config["MAX_CONTENT_LENGTH"] = 900 * 1024 * 1024
 JOBS: dict[str, dict] = {}
 JOBS_LOCK = threading.Lock()
 BENCH_STATE = {"running": False, "proc": None, "log": ""}
+ACCEPT_STATE = {"running": False, "error": None, "message": ""}
 
 ALLOWED_EXT = {".mp4", ".mov", ".m4v", ".avi", ".mkv", ".webm"}
 
@@ -215,13 +223,14 @@ def health():
 @app.get("/api/samples")
 def list_samples():
     out = []
-    for key, info in SAMPLE_INFO.items():
+    for key, info in ALL_SAMPLE_INFO.items():
         path = os.path.join(SAMPLE_DIR, info["file"])
         out.append(
             {
                 "key": key,
                 "title": info["title"],
                 "desc": info["desc"],
+                "testfield": key in TESTFIELD_INFO,
                 "exists": os.path.exists(path),
                 "size_mb": round(os.path.getsize(path) / 1e6, 2)
                 if os.path.exists(path)
@@ -233,14 +242,17 @@ def list_samples():
 
 @app.post("/api/samples/<key>/create")
 def create_sample(key: str):
-    if key not in SAMPLE_INFO:
+    if key not in ALL_SAMPLE_INFO:
         return jsonify({"error": "未知样片"}), 404
     force = bool((request.json or {}).get("force"))
-    path = os.path.join(SAMPLE_DIR, SAMPLE_INFO[key]["file"])
+    path = os.path.join(SAMPLE_DIR, ALL_SAMPLE_INFO[key]["file"])
     if force or not os.path.exists(path):
-        render_sample(key)
+        if key in TESTFIELD_INFO:
+            render_testfield(key)
+        else:
+            render_sample(key)
     model = (request.json or {}).get("model", "similarity")
-    jid = _create_job(path, SAMPLE_INFO[key]["file"], model)
+    jid = _create_job(path, ALL_SAMPLE_INFO[key]["file"], model)
     return jsonify({"job_id": jid})
 
 
@@ -385,6 +397,60 @@ def source_media(jid: str):
 @app.get("/api/jobs/<jid>/stabilized.mp4")
 def stabilized_media(jid: str):
     return send_from_directory(job_dir(jid), "stabilized.mp4")
+
+
+# ---------------------------------------------------------------- benchmark
+
+# ---------------------------------------------------------------- acceptance
+
+@app.get("/api/acceptance")
+def get_acceptance():
+    p = os.path.join(ACCEPT_DIR, "acceptance.json")
+    if not os.path.exists(p):
+        return jsonify({"ready": False, "running": ACCEPT_STATE["running"]})
+    with open(p, encoding="utf-8") as f:
+        rep = json.load(f)
+    return jsonify(
+        {
+            "ready": True,
+            "running": ACCEPT_STATE["running"],
+            "message": ACCEPT_STATE.get("message", ""),
+            "report": rep,
+        }
+    )
+
+
+@app.get("/api/acceptance/artifacts/<path:name>")
+def acceptance_artifact(name: str):
+    return send_from_directory(ACCEPT_DIR, name)
+
+
+@app.post("/api/acceptance/run")
+def run_acceptance_api():
+    if ACCEPT_STATE["running"]:
+        return jsonify({"ok": True, "already_running": True})
+    data = request.json or {}
+    smoothness = int(data.get("smoothness", DEFAULT_PARAMS["smoothness"]))
+    min_fov = float(data.get("min_fov", DEFAULT_PARAMS["min_fov"]))
+    ACCEPT_STATE.update(running=True, error=None, message="启动")
+
+    def worker():
+        try:
+            def prog(frac, msg):
+                ACCEPT_STATE["message"] = f"{int(frac * 100)}% · {msg}"
+
+            run_acceptance(ACCEPT_DIR, smoothness=smoothness, min_fov=min_fov,
+                           progress=prog)
+            ACCEPT_STATE["message"] = "完成"
+        except Exception as e:
+            traceback.print_exc()
+            ACCEPT_STATE["error"] = f"{type(e).__name__}: {e}"
+            ACCEPT_STATE["message"] = "失败"
+        finally:
+            ACCEPT_STATE["running"] = False
+
+    threading.Thread(target=worker, daemon=True).start()
+    return jsonify({"ok": True})
 
 
 # ---------------------------------------------------------------- benchmark

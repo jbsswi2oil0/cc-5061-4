@@ -34,3 +34,4 @@ __pycache__/
 /runs/test_handheld/
 /runs/test_maxsmooth/
 /runs/test_planar/
+/reports/testfield/acceptance.json.tmp

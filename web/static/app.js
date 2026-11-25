@@ -31,9 +31,10 @@ async function loadSamples() {
   box.innerHTML = "";
   state.samples.forEach((s) => {
     const b = document.createElement("button");
-    b.className = "sample-chip";
+    b.className = "sample-chip" + (s.testfield ? " testfield" : "");
     b.dataset.key = s.key;
-    b.innerHTML = `<b>${s.title}</b><span>${s.desc}</span>`;
+    b.innerHTML =
+      `<b>${s.title}${s.testfield ? ' <span class="tf-tag">测试场</span>' : ""}</b><span>${s.desc}</span>`;
     b.onclick = () => loadSample(s.key, b);
     box.appendChild(b);
   });
@@ -853,6 +854,139 @@ $("runBenchBtn").onclick = async () => {
   }
 };
 
+/* ------------------------------------------------------------- acceptance */
+
+const VERDICT_LABEL = {
+  ok: ["洁净", "good"],
+  interpolation_out_of_bounds: ["插值采样越界", "badtext"],
+  edge_exposed: ["露边（全空像素）", "badtext"],
+  insufficient_fov: ["视野不足", "badtext"],
+  border_mismatch: ["边界不对应", "badtext"],
+};
+
+function verdictPill(status) {
+  const [label, cls] = VERDICT_LABEL[status] || [status, "meh"];
+  return `<span class="pill ${cls}">${label}</span>`;
+}
+
+async function loadAcceptance() {
+  try {
+    const r = await api("/api/acceptance");
+    if (r.ready) renderAcceptance(r.report);
+    else if (r.running) $("acceptStatus").textContent = "验收运行中…";
+    else $("acceptStatus").textContent =
+      "尚无验收报告：点击“运行对抗验收”，约 30 秒完成。";
+  } catch (_) {}
+}
+
+function caseRiskCells(c) {
+  // 空像素风险 / 视野损失 两列分开判定
+  let risk = "–", fov = "–";
+  if (c.empty_pixel_risk && c.empty_pixel_risk.status) {
+    risk = verdictPill(c.empty_pixel_risk.status);
+  } else if (c.id.startsWith("boundary") || c.id === "shortest_pan_search") {
+    risk = `<span class="pill good">边界对应</span>`;
+  }
+  if (c.fov_loss && c.fov_loss.status) {
+    fov = verdictPill(c.fov_loss.status);
+  } else if (c.id.startsWith("forced_")) {
+    fov = `<span class="pill good">独立判定</span>`;
+  }
+  return [risk, fov];
+}
+
+function renderAcceptance(rep) {
+  $("acceptStatus").textContent = "";
+  const v = $("acceptVerdict");
+  v.classList.remove("hidden", "pass", "fail");
+  v.classList.add(rep.verdict === "pass" ? "pass" : "fail");
+  v.textContent =
+    (rep.verdict === "pass" ? "✔ 验收通过" : "✖ 验收失败") +
+    ` · ${rep.cases.filter((c) => c.status === "pass").length}/${rep.cases.length} 案例` +
+    ` · 平滑 ${rep.params.smoothness} · 视野下限 ${Math.round(rep.params.min_fov * 100)}%` +
+    ` · ${rep.elapsed_s}s · ${rep.generated_at}`;
+
+  const tb = $("acceptTable").querySelector("tbody");
+  tb.innerHTML = "";
+  const failArts = [];
+  rep.cases.forEach((c) => {
+    const tr = document.createElement("tr");
+    const [risk, fov] = caseRiskCells(c);
+    const nFail = (c.failures || []).length;
+    tr.innerHTML =
+      `<td><b>${c.title}</b><span class="clip-desc">${escapeHtml(c.summary)}</span></td>` +
+      `<td>${risk}</td><td>${fov}</td>` +
+      `<td class="${c.status === "pass" ? "good" : "badtext"}">${c.status === "pass" ? "通过" : "失败"}</td>` +
+      `<td>${nFail ? `${nFail} 项 <a href="#acceptFailures">查看</a>` : "–"}</td>`;
+    tb.appendChild(tr);
+    (c.failures || []).forEach((f) => failArts.push(f));
+  });
+
+  const box = $("acceptFailures");
+  box.innerHTML = "";
+  if (failArts.length) {
+    const h = document.createElement("div");
+    h.className = "hint";
+    h.textContent = "失败还原（源帧 + 相机变换 + 裁切矩形）：";
+    box.appendChild(h);
+    failArts.forEach((f) => {
+      const d = document.createElement("details");
+      d.className = "fail-art";
+      const K = f.camera_transform
+        .map((r) => r.map((x) => Number(x).toFixed(4)).join("  ")).join("\n");
+      const quad = f.crop_rect_src
+        .map((p) => `(${Number(p[0]).toFixed(1)}, ${Number(p[1]).toFixed(1)})`)
+        .join(" ");
+      d.innerHTML =
+        `<summary>${f.case} · 帧 ${f.frame} · ${escapeHtml(f.reason)}</summary>` +
+        `<div class="fail-grid">` +
+        (f.source_frame_png
+          ? `<figure><img src="/api/acceptance/artifacts/${f.source_frame_png}" alt="源帧"><figcaption>源帧</figcaption></figure>`
+          : "") +
+        (f.rendered_png
+          ? `<figure><img src="/api/acceptance/artifacts/${f.rendered_png}" alt="实渲"><figcaption>实渲（哨兵色=空像素）</figcaption></figure>`
+          : "") +
+        `<pre>相机变换 K =\n${K}\n\n裁切矩形(源坐标) =\n${quad}</pre>` +
+        `</div>`;
+      box.appendChild(d);
+    });
+  }
+  $("acceptExtra").textContent =
+    "空像素风险与有效视野损失为两个独立判定维度；参考边（像素中心/半像素）校准插值采样越界模型。";
+}
+
+$("runAcceptBtn").onclick = async () => {
+  $("runAcceptBtn").disabled = true;
+  $("acceptStatus").textContent = "对抗验收在后台运行，约 30 秒…";
+  try {
+    await api("/api/acceptance/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(currentParams()),
+    });
+    const t = setInterval(async () => {
+      try {
+        const st = await api("/api/acceptance");
+        if (st.running) {
+          if (st.message) $("acceptStatus").textContent = `验收运行中：${st.message}`;
+          return;
+        }
+        clearInterval(t);
+        $("runAcceptBtn").disabled = false;
+        if (st.ready) {
+          $("acceptStatus").textContent = "";
+          renderAcceptance(st.report);
+        } else {
+          $("acceptStatus").textContent = "验收失败，请查看服务器日志";
+        }
+      } catch (_) {}
+    }, 2000);
+  } catch (e) {
+    $("runAcceptBtn").disabled = false;
+    $("acceptStatus").textContent = "启动失败：" + e.message;
+  }
+};
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -861,3 +995,4 @@ function escapeHtml(s) {
 /* --------------------------------------------------------------- init */
 loadSamples().catch((e) => showFatal(`无法载入样片列表：${e.message}`));
 loadBenchmark();
+loadAcceptance();
